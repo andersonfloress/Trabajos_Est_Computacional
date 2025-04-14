@@ -6,6 +6,7 @@ library(multcomp)
 library(car)
 library(tidyr)
 library(shinythemes)
+library(report)
 
 ui <- fluidPage(
   theme = shinytheme("slate"),
@@ -154,7 +155,20 @@ server <- function(input, output, session) {
       modelo <- aov(valores ~ grupo, data = df)
       resumen <- summary(modelo)
       tukey <- TukeyHSD(modelo)
-      list(anova = resumen, tukey = tukey)
+      library(report)
+      reporte <- report(modelo)
+      resumen_reporte <- summary(reporte)
+      tabla_reporte <- as.data.frame(reporte)
+      resumen_tabla <- summary(tabla_reporte)
+      
+      list(
+        anova = resumen,
+        tukey = tukey,
+        reporte = reporte,
+        resumen_reporte = resumen_reporte,
+        tabla_reporte = tabla_reporte,
+        resumen_tabla = resumen_tabla
+      )
     }
   })
   
@@ -168,8 +182,21 @@ server <- function(input, output, session) {
       print(res$anova)
       cat("\n--- Prueba de Tukey ---\n")
       print(res$tukey)
+      
+      cat("\n--- Reporte Detallado ---\n")
+      print(res$reporte)
+      
+      cat("\n--- Summary del Reporte ---\n")
+      print(res$resumen_reporte)
+      
+      cat("\n--- Tabla del Reporte (como data.frame) ---\n")
+      print(res$tabla_reporte)
+      
+      cat("\n--- Summary de la Tabla del Reporte ---\n")
+      print(res$resumen_tabla)
     }
   })
+  
   
   output$plot_result <- renderPlot({
     req(input$grupo_var, input$valor_var)
