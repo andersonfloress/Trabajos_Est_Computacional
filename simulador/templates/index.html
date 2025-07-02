@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Juego de Supervivencia</title>
+</head>
+<body>
+    <h1>Simulador del Juego de Supervivencia</h1>
+
+    <div class="container">
+        <div class="form-section">
+            {% if num is none %}
+            <form method="post">
+                <label>Número de participantes:</label>
+                <input type="number" name="participantes" required min="1">
+
+                <label>Dulces necesarios para cambiar por chupetín:</label>
+                <input type="number" name="dulces_para_cambiar" required min="1" value="6">
+
+                <label>Dulces extra que da el cambista al cambiar a chupetín:</label>
+                <input type="number" name="dulces_extra" required min="0" value="2">
+
+                <label>Dulces recibidos al cambiar chupetín por dulces:</label>
+                <input type="number" name="dulces_recibidos" required min="1" value="6">
+
+                <button type="submit">Jugar</button>
+            </form>
+            {% else %}
+            <form method="post">
+                <input type="hidden" name="accion" value="cambiar_dulces_a_chupetin">
+                <h3>Cambiar dulces por chupetín</h3>
+                <p>Necesitas {{ dulces_para_cambiar }} dulces:</p>
+                {% for dulce in DULCES %}
+                <label>{{ dulce.title() }}:</label>
+                <input type="number" name="dulce_{{ dulce }}" min="0" value="0">
+                {% endfor %}
+
+                <h4>Elige {{ dulces_extra }} dulces extra que deseas recibir:</h4>
+                {% for dulce in DULCES %}
+                    <label>{{ dulce.title() }} extra:</label>
+                    <input type="number" name="extra_{{ dulce }}" min="0" value="0">
+                {% endfor %}
+
+                <button type="submit">Cambiar por chupetín</button>
+            </form>
+
+
+            <form method="post">
+                <input type="hidden" name="accion" value="cambiar_chupetin_a_dulces">
+                <h3>Cambiar chupetín por dulces</h3>
+                <p>Recibirás {{ dulces_recibidos }} dulces:</p>
+                {% for dulce in DULCES %}
+                <label>{{ dulce.title() }}:</label>
+                <input type="number" name="dulce_{{ dulce }}" min="0" value="0">
+                {% endfor %}
+                <button type="submit">Cambiar por dulces</button>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="resultado-section">
+            {% if num is not none %}
+                <h2>Estado del juego</h2>
+                <p>Participantes: {{ num }}</p>
+                <p>Chupetines: {{ chupetines }}</p>
+                
+                <h3>Dulces actuales:</h3>
+                <ul>
+                {% for dulce in DULCES %}
+                    <li>{{ dulce.title() }}: {{ dulces_totales.get(dulce, 0) }}</li>
+                {% endfor %}
+                </ul>
+
+                <h3>Participantes iniciales:</h3>
+                <ul>
+                {% for participante in participantes %}
+                    <li>Participante {{ loop.index }}: {{ participante|join(', ') }}</li>
+                {% endfor %}
+                </ul>
+
+                <p>Cambios realizados:</p>
+                <ul>
+                    <li>Dulces → Chupetín: {{ cambios_dulces_a_chupetin }}</li>
+                    <li>Chupetín → Dulces: {{ cambios_chupetin_a_dulces }}</li>
+                </ul>
+
+                {% if salvados %}
+                    <p style="color: green;">¡SALVADOS! Tienen suficientes chupetines.</p>
+                {% else %}
+                    <p style="color: red;">Necesitan {{ num - chupetines }} chupetines más.</p>
+                {% endif %}
+
+                {% if mensaje %}
+                    <p style="color: orange;">{{ mensaje }}</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    {% if num %}
+    <form method="post" style="position: fixed; bottom: 25px; right: 25px;">
+        <input type="hidden" name="accion" value="reiniciar_juego">
+        <button type="submit">Iniciar de nuevo</button>
+    </form>
+    {% endif %}
+
+    <style>
+       body {
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;      /* Fondo gris claro */
+        color: #333333;           /* Texto gris oscuro */
+        margin: 0;
+        padding: 20px;
+       }
+
+       h1 {
+           color: #333333;
+           margin-bottom: 20px;
+       }
+
+       .container {
+           display: flex;
+           flex-direction: row;
+           gap: 30px;
+       }
+
+       .form-section {
+           width: 300px;
+       }
+
+       .form-section form {
+           background: #ffffff;       /* Fondo blanco para formulario */
+           padding: 20px;
+           border-radius: 8px;
+           border: 1px solid #cccccc; /* Borde gris claro */
+       }
+
+       form label {
+           display: block;
+           margin-top: 12px;
+           font-weight: bold;
+       }
+
+       form input[type="number"] {
+           width: 100%;
+           padding: 6px;
+           margin-top: 4px;
+           border: 1px solid #cccccc;
+           border-radius: 4px;
+           background-color: #f9f9f9;
+       }
+
+       form button {
+           margin-top: 20px;
+           width: 100%;
+           background: #00bcd4;       /* Celeste */
+           color: white;
+           padding: 10px;
+           font-size: 1em;
+           border: none;
+           border-radius: 5px;
+           cursor: pointer;
+       }
+
+       form button:hover {
+           background: #0097a7;       /* Celeste más oscuro */
+       }
+
+       .resultado-section {
+           flex: 1;
+           background: #ffffff;       /* Fondo blanco para resultados */
+           padding: 20px;
+           border-radius: 8px;
+           border: 1px solid #cccccc;
+       }
+
+       .resultado-section h2,
+       .resultado-section h3 {
+           color: #333333;
+           margin-top: 0;
+       }
+
+       ul {
+           padding-left: 20px;
+           margin-bottom: 16px;
+       }
+
+       ul li {
+           margin-bottom: 5px;
+       }
+
+       p {
+           font-size: 1em;
+           font-weight: bold;
+       }
+
+       @media (max-width: 800px) {
+           .container {
+               flex-direction: column;
+           }
+
+           .form-section,
+           .resultado-section {
+               width: 100%;
+           }
+       }
+    </style>
+
+</body>
+</html>
